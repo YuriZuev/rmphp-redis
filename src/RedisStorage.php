@@ -52,5 +52,12 @@ class RedisStorage implements RedisStorageInterface {
 		return $this->redis->exists($key);
 	}
 
+	/**
+	 * @return Redis
+	 */
+	public function getRedis(): Redis {
+		return $this->redis;
+	}
+
 
 }

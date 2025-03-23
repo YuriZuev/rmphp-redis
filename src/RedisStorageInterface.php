@@ -13,4 +13,6 @@ interface RedisStorageInterface {
 	public function get(string $key): mixed;
 
 	public function exists(mixed $key): bool | int | Redis;
+
+	public function getRedis(): Redis;
 }
