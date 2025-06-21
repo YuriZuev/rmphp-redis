@@ -1,4 +1,4 @@
-## Rmphp/DataManager
+## Rmphp/Redis
 
 Redis component for **Rmphp**
 
