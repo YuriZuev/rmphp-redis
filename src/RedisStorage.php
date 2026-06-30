@@ -36,7 +36,9 @@ class RedisStorage implements RedisStorageInterface {
 		}
 
 		$this->redis = new Redis($options);
-		$database = (int) ltrim($parsedDSN['path'], '/');
+		$this->redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
+
+		$database = (int) ltrim($parsedDSN['path'] ?? '', '/');
 		$this->redis->select($database);
 	}
 
