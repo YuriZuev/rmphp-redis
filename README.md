@@ -10,12 +10,12 @@ Stable version
 composer require rmphp/redis
 ```
 ```bash
-composer require rmphp/redis:"^1.0"
+composer require rmphp/redis:"^2.0"
 ```
 
 
 Dev version contains the latest changes
 
 ```bash
-composer require rmphp/redis:"1.x-dev"
+composer require rmphp/redis:"2.x-dev"
 ```

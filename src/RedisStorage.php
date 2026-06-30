@@ -13,15 +13,31 @@ class RedisStorage implements RedisStorageInterface {
 	/**
 	 * @throws RedisException
 	 */
-	public function __construct(array $params) {
-		if(isset($params['database'])){
-			if(is_int($params['database'])) $database = $params['database'];
-			unset($params['database']);
-			if(is_int($params['defaultExpire'])) $this->expire = $params['defaultExpire'];
-			unset($params['defaultExpire']);
+	public function __construct(string $dsn) {
+		$parsedDSN = parse_url($dsn);
+
+		if (isset($parsedDSN['query'])) {
+			parse_str(strtolower($parsedDSN['query']), $options);
 		}
-		$this->redis = new Redis($params);
-		if(!empty($database)) $this->redis->select($database);
+		$options['host'] = $parsedDSN['host'];
+		$options['port'] = $parsedDSN['port'] ?? 6379;
+
+		if (isset($parsedDSN['user'])) {
+			$options['username'] = $parsedDSN['user'];
+		}
+
+		if (isset($parsedDSN['pass'])) {
+			$options['password'] = $parsedDSN['pass'];
+		}
+
+		if(isset($options['defaultexpire'])) {
+			$this->expire = (int) $options['defaultexpire'];
+			unset($options['defaultexpire']);
+		}
+
+		$this->redis = new Redis($options);
+		$database = (int) ltrim($parsedDSN['path'], '/');
+		$this->redis->select($database);
 	}
 
 	/**
@@ -53,11 +69,33 @@ class RedisStorage implements RedisStorageInterface {
 	}
 
 	/**
+	 * @param array|string $key
+	 * @param string ...$other_keys
+	 * @return void
+	 */
+	public function del(array|string $key, string ...$other_keys): void {
+		$this->redis->del($key, ...$other_keys);
+	}
+
+	/**
 	 * @return Redis
 	 */
 	public function getRedis(): Redis {
 		return $this->redis;
 	}
 
-
+	/**
+	 * @param string $name
+	 * @param callable $function
+	 * @param int|null $expire
+	 * @return mixed
+	 */
+	public function remember(string $name, callable $function, ?int $expire = null) : mixed {
+		if($this->redis->exists($name)){
+			return $this->redis->get($name);
+		}
+		$value = $function();
+		$this->redis->set($name, $value, $expire ?? $this->expire);
+		return $value;
+	}
 }

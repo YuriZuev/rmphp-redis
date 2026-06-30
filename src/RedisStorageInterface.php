@@ -14,5 +14,9 @@ interface RedisStorageInterface {
 
 	public function exists(mixed $key): bool | int | Redis;
 
+	public function del(array|string $key, string ...$other_keys): void;
+
 	public function getRedis(): Redis;
+
+	public function remember(string $name, callable $function, ?int $expire = null) : mixed;
 }
