@@ -17,22 +17,20 @@ class RedisStorage implements RedisStorageInterface {
 		$parsedDSN = parse_url($dsn);
 
 		if (isset($parsedDSN['query'])) {
-			parse_str(strtolower($parsedDSN['query']), $options);
+			parse_str($parsedDSN['query'], $options);
 		}
-		$options['host'] = $parsedDSN['host'];
+		$options['host'] = $parsedDSN['host'] ?? 'localhost';
 		$options['port'] = $parsedDSN['port'] ?? 6379;
 
-		if (isset($parsedDSN['user'])) {
-			$options['username'] = $parsedDSN['user'];
+		if (isset($parsedDSN['user']) && isset($parsedDSN['pass'])) {
+			$options['auth'] = [$parsedDSN['user'], $parsedDSN['pass']];
+		} elseif (isset($parsedDSN['pass'])) {
+			$options['auth'] = $parsedDSN['pass'];
 		}
 
-		if (isset($parsedDSN['pass'])) {
-			$options['password'] = $parsedDSN['pass'];
-		}
-
-		if(isset($options['defaultexpire'])) {
-			$this->expire = (int) $options['defaultexpire'];
-			unset($options['defaultexpire']);
+		if(isset($options['defaultExpire'])) {
+			$this->expire = (int) $options['defaultExpire'];
+			unset($options['defaultExpire']);
 		}
 
 		$this->redis = new Redis($options);
@@ -93,8 +91,9 @@ class RedisStorage implements RedisStorageInterface {
 	 * @return mixed
 	 */
 	public function remember(string $name, callable $function, ?int $expire = null) : mixed {
-		if($this->redis->exists($name)){
-			return $this->redis->get($name);
+		$value = $this->redis->get($name);
+		if ($value !== false || $this->redis->exists($name)) {
+			return $value;
 		}
 		$value = $function();
 		$this->redis->set($name, $value, $expire ?? $this->expire);
