@@ -100,4 +100,44 @@ class RedisStorage implements RedisStorageInterface {
 		$this->redis->set($name, $value, $expire ?? $this->expire);
 		return $value;
 	}
+
+	/**
+	 * @throws RedisException
+	 */
+	public function setTag(string $key, mixed $value, array $tags, mixed $option = null): void {
+		$this->redis->set($key, $value, $option);
+		foreach ($tags as $tag) {
+			$this->redis->sAdd($this->tagKey($tag), $key);
+		}
+	}
+
+	/**
+	 * @throws RedisException
+	 */
+	public function rememberTag(string $name, array $tags, callable $function, ?int $expire = null) : mixed {
+		if($this->redis->exists($name)){
+			return $this->redis->get($name);
+		}
+		$value = $function();
+		$this->setTag($name, $value, $tags, $expire ?? $this->expire);
+		return $value;
+	}
+
+	/**
+	 * @throws RedisException
+	 */
+	public function invalidateTag(string ...$tags): void {
+		foreach ($tags as $tag) {
+			$tagKey = $this->tagKey($tag);
+			$keys = $this->redis->sMembers($tagKey);
+			if ($keys) {
+				$this->redis->del($keys);
+			}
+			$this->redis->del($tagKey);
+		}
+	}
+
+	private function tagKey(string $tag): string {
+		return "tag:$tag";
+	}
 }

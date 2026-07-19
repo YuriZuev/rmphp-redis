@@ -19,4 +19,10 @@ interface RedisStorageInterface {
 	public function getRedis(): Redis;
 
 	public function remember(string $name, callable $function, ?int $expire = null) : mixed;
+
+	public function setTag(string $key, mixed $value, array $tags, mixed $option = null): void;
+
+	public function rememberTag(string $name, array $tags, callable $function, ?int $expire = null) : mixed;
+
+	public function invalidateTag(string ...$tags): void;
 }
