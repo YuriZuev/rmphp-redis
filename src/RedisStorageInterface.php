@@ -25,4 +25,5 @@ interface RedisStorageInterface {
 	public function rememberTag(string $name, array $tags, callable $function, ?int $expire = null) : mixed;
 
 	public function invalidateTag(string ...$tags): void;
+
 }
