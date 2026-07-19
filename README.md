@@ -10,7 +10,7 @@ Stable version
 composer require rmphp/redis
 ```
 ```bash
-composer require rmphp/redis:"^2.0"
+composer require rmphp/redis:"^2.1"
 ```
 
 
